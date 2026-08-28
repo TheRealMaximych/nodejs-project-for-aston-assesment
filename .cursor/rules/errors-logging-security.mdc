@@ -1,0 +1,40 @@
+---
+description: Единый формат ошибок, логирование и безопасность
+alwaysApply: true
+---
+
+# Ошибки, логи, безопасность
+
+## Ошибки API
+
+Единое тело: `{ "error": string, "statusCode": number }`.
+
+| Ситуация | statusCode |
+|---|---|
+| валидация, insufficient funds, разная валюта, перевод на тот же счёт | 400 |
+| нет/невалидный токен | 401 |
+| чужой счёт (balance/history/fromAccount) | 403 |
+| сущность не найдена | 404 |
+| email уже занят | 409 |
+| необработанная ошибка | 500 (без стека и внутренних деталей клиенту) |
+
+Сообщение insufficient funds: `"Insufficient funds"`.
+
+## Логи
+
+Логировать ошибки и ключевые операции. Сообщения понятные, с идентификаторами (`userId`, `accountId`). **Не логировать** пароль, хэш, JWT, токены, CVV и тело с секретами.
+
+Примеры:
+
+- `User registered: email=john@example.com`
+- `User login successful: userId=123`
+- `Account created: accountId=456, userId=123`
+- `Transfer completed: from=456 to=789 amount=100`
+- `Transfer failed: from=456, reason=insufficient funds`
+
+## Безопасность
+
+- Пароль: хэш (bcrypt или argon2), никогда plaintext.
+- JWT access token в ответе логина; logout повышает `tokenVersion` (или удаляет сессию) — токен после logout недействителен.
+- Параметризованные запросы / API TypeORM, без конкатенации SQL.
+- Не отдавать `password` и служебные поля в JSON.

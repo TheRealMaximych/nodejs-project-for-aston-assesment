@@ -1,0 +1,63 @@
+schema: spec-driven
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+context: |
+  Project: banking accounts and transfers REST API (J3 backend assessment).
+  Stack: Node.js, TypeScript (strict), Express, TypeORM, PostgreSQL. No frontend.
+  Layout: src/config, src/http, src/services, src/repositories, src/domain, src/entities, migrations/, seeds/.
+  Layering: HTTP → service → repository. TypeORM/SQL only in repositories and config.
+  Money: numeric columns, never float. Schema changes only via TypeORM migrations (synchronize off).
+  Secrets only via validated env config. Conversations in the user's language; code identifiers in English.
+
+  Domain: User (id, unique email, password hash, createdAt, tokenVersion for logout),
+  BankAccount (id, accountHolder, balance default 0, currency, userId, createdAt),
+  Transaction (id, fromAccount, toAccount, amount, timestamp, status Completed|Failed).
+  IDs are UUIDs. A user may have multiple accounts.
+
+  REST (do not add extra endpoints unless asked):
+  POST /auth/register, POST /auth/login, POST /auth/logout,
+  POST /accounts, GET /accounts/:id/balance,
+  POST /transactions, GET /transactions/:accountId.
+  Contracts: register {email,password}→{id,email}; login→{accessToken};
+  account {accountHolder,currency}→{id,accountHolder,balance,currency};
+  balance→{balance}; transfer {fromAccount,toAccount,amount}→{transactionId,status};
+  history array with transactionId, fromAccount, toAccount, amount, timestamp, status.
+
+  Transfers: fromAccount must belong to the authenticated user; toAccount may belong to another user.
+  Same currency only; amount > 0; from ≠ to. Atomic debit+credit+row in one DB transaction with row locks.
+  No deposit API; non-zero demo balances come from seeds (at least two accounts, different users, same currency).
+  Auth: JWT access token; logout invalidates the token server-side (tokenVersion). No Redis/refresh tokens.
+
+  Errors: {error, statusCode}. Insufficient funds → 400 "Insufficient funds".
+  401 unauthenticated, 403 foreign account, 404 missing entity, 409 duplicate email.
+  Log business events with ids (userId, accountId); never log passwords, hashes, or tokens.
+
+  Tests: unit-test services (transfers, domain errors, auth) with mocked repositories.
+  Docs: Swagger/OpenAPI on all routes. README is run-instructions only.
+  Docker Compose for PostgreSQL only. Out of scope until explicitly requested:
+  NestJS, MongoDB, Redis, GraphQL, OAuth2, refresh tokens, email verify, password reset, app image.
+
+# Per-artifact rules (optional)
+rules:
+  proposal:
+    - Stay within required assignment features unless the user asked for an extra
+    - Always include a Non-goals section listing extras (Redis, refresh tokens, NestJS, GraphQL, OAuth2, email, app Docker image, deposit endpoint)
+  specs:
+    - Requirements must match the REST contracts and error format {error, statusCode}
+    - Transfers: own fromAccount, any toAccount, same currency, atomic, numeric money
+  design:
+    - Express + TypeORM repositories; no SQL/TypeORM in HTTP handlers
+    - JWT access token + tokenVersion (or session) for logout; no Redis unless requested
+  tasks:
+    - Include TypeORM migrations, seed with two funded accounts of different users, service unit tests, Swagger
+
+# Per-operation guidance (optional)
+operations:
+  apply:
+    guidance:
+      - Implement HTTP → service → repository only; do not add undocumented endpoints
+      - Keep test summaries concise; service tests must mock repositories
+  archive:
+    guidance:
+      - Summarize the archive outcome before finishing

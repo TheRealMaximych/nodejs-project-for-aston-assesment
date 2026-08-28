@@ -1,0 +1,37 @@
+---
+description: Доменные модели, REST API и правила переводов
+alwaysApply: true
+---
+
+# Домен и REST API
+
+Идентификаторы — UUID (в JSON — строки). Не добавлять эндпоинты вне этого списка без явной просьбы.
+
+## Модели
+
+- **User**: `id`, `email` (unique), `password` (hash), `createdAt`. Для logout — `tokenVersion` (или аналог сессии), не логировать и не отдавать в API.
+- **BankAccount**: `id`, `accountHolder`, `balance` (по умолчанию 0), `currency`, `userId`, `createdAt`. У пользователя может быть несколько счетов.
+- **Transaction**: `id`, `fromAccount`, `toAccount`, `amount`, `timestamp`, `status` (`Completed` | `Failed`).
+
+## Эндпоинты
+
+| Метод | Путь | Auth | Назначение |
+|---|---|---|---|
+| POST | `/auth/register` | нет | регистрация |
+| POST | `/auth/login` | нет | JWT `accessToken` |
+| POST | `/auth/logout` | да | инвалидировать текущий access token на сервере |
+| POST | `/accounts` | да | создать счёт владельцу из JWT |
+| GET | `/accounts/:id/balance` | да | баланс **своего** счёта |
+| POST | `/transactions` | да | перевод |
+| GET | `/transactions/:accountId` | да | история **своего** счёта |
+
+## Переводы
+
+- `fromAccount` должен принадлежать текущему пользователю; `toAccount` может быть чужим.
+- `amount` > 0; `from` ≠ `to`; валюты счетов совпадают. Иначе 400.
+- Атомарно: списание, зачисление, запись транзакции в одной DB-транзакции с блокировкой строк (или условным UPDATE баланса).
+- Недостаточный баланс → 400, тело как в задании. Стартовый баланс > 0 задаётся **seed**, депозит-API нет.
+
+## Контракты (форма)
+
+Register in `{ email, password }` → `{ id, email }`. Login → `{ accessToken }`. Account in `{ accountHolder, currency }` → `{ id, accountHolder, balance, currency }`. Balance → `{ balance }`. Transfer in `{ fromAccount, toAccount, amount }` → `{ transactionId, status }`. History → массив с `transactionId`, `fromAccount`, `toAccount`, `amount`, `timestamp`, `status`.

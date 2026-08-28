@@ -1,0 +1,15 @@
+---
+description: HTTP-слой не ходит в БД и не содержит бизнес-логики
+globs: src/http/**/*.ts
+alwaysApply: false
+---
+
+# HTTP-слой
+
+Маршруты только: распарсить/валидировать DTO → вызвать service → отдать JSON и статус.
+
+Запрещено в `src/http`: TypeORM, `DataSource`, SQL, правила баланса/перевода, хэш пароля (кроме передачи в service).
+
+Auth-middleware читает JWT, кладёт `userId` (и `tokenVersion`) в request. Guards как отдельные middleware, не внутри handler.
+
+Ошибки домена из service маппить в `{ error, statusCode }`. Не глотать исключения.

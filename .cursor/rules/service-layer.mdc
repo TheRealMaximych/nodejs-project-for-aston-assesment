@@ -1,0 +1,15 @@
+---
+description: Бизнес-логика и логи ключевых операций в services
+globs: src/services/**/*.ts
+alwaysApply: false
+---
+
+# Service-слой
+
+Здесь: регистрация/логин/logout, создание счёта, баланс, перевод, история.
+
+Перевод — одна операция сервиса: проверка владельца `from`, валюты, amount, атомарное списание/зачисление через repository (одна DB-транзакция).
+
+После успеха/бизнес-отказа — лог по шаблону проекта (`User registered`, `Transfer completed` / `Transfer failed`, …). Без паролей и токенов.
+
+Не импортировать Express `Request`/`Response`. Бросать доменные ошибки из `src/domain`, не `res.status()`.

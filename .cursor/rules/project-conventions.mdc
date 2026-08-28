@@ -1,0 +1,27 @@
+---
+description: Стек, структура каталогов и слойность backend-сервиса
+alwaysApply: true
+---
+
+# Стек и структура
+
+Стек: **Node.js**, **TypeScript (strict)**, **Express**, **TypeORM**, **PostgreSQL**. Без фронтенда, если явно не попросили.
+
+Вне скоупа, пока пользователь явно не попросил: NestJS, MongoDB, Redis, GraphQL, OAuth2, refresh-токены, подтверждение email, восстановление пароля, Docker-образ приложения.
+
+```
+src/config        # валидированный env, TypeORM DataSource
+src/http          # маршруты, middleware, DTO
+src/services      # бизнес-логика
+src/repositories  # доступ к БД через TypeORM
+src/domain        # типы домена, ошибки
+src/entities      # сущности TypeORM
+migrations/       # только миграции TypeORM
+seeds/            # демо-данные (счета с балансом для переводов)
+```
+
+- Код приложения — в `src/`. Схема БД меняется **только** миграциями TypeORM. Не использовать `synchronize: true` вне локальных экспериментов; в проекте — выключено.
+- Секреты — только в `.env`. Читать через валидированный конфиг, не `process.env` в http/services.
+- Слойность: HTTP → service → repository. TypeORM `Repository` / `DataSource` / QueryBuilder — только в `src/repositories` и `src/config`.
+- Деньги: колонка `numeric`, не `float`/`double`. В коде — строка или decimal-тип, не `number` для баланса и сумм.
+- Отвечать на русском. Комментарии и сообщения коммитов — на английском, если не попросили иначе.
