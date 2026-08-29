@@ -11,7 +11,7 @@ const optionalEnvString = z
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive(),
   NODE_ENV: z.enum(["development", "test", "production"]),
-  DATABASE_URL: optionalEnvString,
+  DATABASE_URL: z.string().trim().min(1),
   JWT_SECRET: optionalEnvString,
 });
 

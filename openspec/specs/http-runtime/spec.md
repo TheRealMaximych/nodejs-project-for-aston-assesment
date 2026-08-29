@@ -2,16 +2,20 @@
 
 ## Purpose
 
-An HTTP JSON process starts without a database and without banking domain routes, exposing only a health check and returning every error in a single client-safe body shape.
+An HTTP JSON process starts after a successful database connection and without banking domain routes, exposing only a health check and returning every error in a single client-safe body shape.
 
 ## Requirements
 
-### Requirement: HTTP server becomes ready without PostgreSQL
-The system MUST listen for HTTP requests using the validated `PORT`. Becoming ready MUST NOT require a running PostgreSQL instance or any database driver connection.
+### Requirement: HTTP server becomes ready after database connection
+The system MUST listen for HTTP requests using the validated `PORT` only after a successful database connection using the validated `DATABASE_URL`. If that connection fails, the process MUST NOT accept HTTP requests.
 
-#### Scenario: Health works when the database is down
-- **WHEN** PostgreSQL is not running and the process has started with valid required config
-- **THEN** `GET /health` still returns HTTP 200
+#### Scenario: Health after connected start
+- **WHEN** PostgreSQL is reachable with the validated `DATABASE_URL` and the process has started
+- **THEN** `GET /health` returns HTTP 200 and body `{ "status": "ok" }`
+
+#### Scenario: Unreachable database prevents HTTP
+- **WHEN** PostgreSQL is not reachable and the process attempts to start with valid required config including `DATABASE_URL`
+- **THEN** the process MUST exit without serving HTTP
 
 ### Requirement: Health check is the only successful public route
 The system MUST expose `GET /health` without authentication. The response status MUST be 200 and the JSON body MUST be `{ "status": "ok" }`. Domain banking routes from the assignment (`/auth/*`, `/accounts`, `/transactions`) MUST NOT succeed at this stage.
