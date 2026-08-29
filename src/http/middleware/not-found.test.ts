@@ -39,13 +39,13 @@ describe("notFound", () => {
     }
   });
 
-  test("POST /auth/login returns 404 { error, statusCode }", async () => {
+  test("POST /auth/logout returns 404 { error, statusCode }", async () => {
     const server = app.listen(0);
     await once(server, "listening");
 
     try {
       const { port } = server.address() as AddressInfo;
-      const response = await fetch(`http://127.0.0.1:${port}/auth/login`, {
+      const response = await fetch(`http://127.0.0.1:${port}/auth/logout`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: "{}",

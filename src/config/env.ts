@@ -3,16 +3,11 @@ import { z } from "zod";
 
 dotenv.config();
 
-const optionalEnvString = z
-  .string()
-  .optional()
-  .transform((value) => (value === "" ? undefined : value));
-
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive(),
   NODE_ENV: z.enum(["development", "test", "production"]),
   DATABASE_URL: z.string().trim().min(1),
-  JWT_SECRET: optionalEnvString,
+  JWT_SECRET: z.string().trim().min(1),
 });
 
 function loadConfig() {
@@ -29,6 +24,7 @@ function loadConfig() {
     nodeEnv: parsed.data.NODE_ENV,
     databaseUrl: parsed.data.DATABASE_URL,
     jwtSecret: parsed.data.JWT_SECRET,
+    jwtExpiresIn: "1h" as const,
   };
 }
 
