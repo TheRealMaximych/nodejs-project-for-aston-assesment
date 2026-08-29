@@ -1,13 +1,11 @@
 import type { ErrorRequestHandler } from "express";
 import { logger } from "../../config/logger";
-import { AppError } from "../../domain/app-error";
+import { mapDomainError } from "../map-domain-error";
 
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
-  if (err instanceof AppError) {
-    res.status(err.statusCode).json({
-      error: err.message,
-      statusCode: err.statusCode,
-    });
+  const mapped = mapDomainError(err);
+  if (mapped) {
+    res.status(mapped.statusCode).json(mapped);
     return;
   }
 
