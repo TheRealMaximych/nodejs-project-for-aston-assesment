@@ -109,6 +109,27 @@ describe("notFound", () => {
     }
   });
 
+  test("POST /auth/register with malformed JSON returns 400 { error, statusCode }", async () => {
+    const server = app.listen(0);
+    await once(server, "listening");
+
+    try {
+      const { port } = server.address() as AddressInfo;
+      const response = await fetch(`http://127.0.0.1:${port}/auth/register`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "{not-json",
+      });
+      const body: unknown = await response.json();
+
+      assert.equal(response.status, 400);
+      assert.deepEqual(body, { error: "Invalid JSON", statusCode: 400 });
+    } finally {
+      server.close();
+      await once(server, "close");
+    }
+  });
+
   test("POST /auth/logout without Authorization returns 401 { error, statusCode }", async () => {
     const server = app.listen(0);
     await once(server, "listening");
