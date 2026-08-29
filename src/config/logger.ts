@@ -9,6 +9,9 @@ const redactPaths = [
   "jwt",
   "authorization",
   "cvv",
+  "databaseUrl",
+  "DATABASE_URL",
+  "url",
 ];
 
 export const logger = pino({

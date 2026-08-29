@@ -1,10 +1,4 @@
-# app-config Specification
-
-## Purpose
-
-Validated runtime configuration is the only source of environment-backed settings, so HTTP and business layers never depend on raw, unvalidated environment access and a database connection string is required before the process serves HTTP.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Required environment is validated before serving HTTP
 The system MUST validate required environment settings before it binds an HTTP port. `PORT` MUST be a positive integer. `NODE_ENV` MUST be one of `development`, `test`, or `production`. `DATABASE_URL` MUST be a non-empty connection string. If a required value is missing or invalid (including an empty `DATABASE_URL`), the process MUST fail to start and MUST NOT accept HTTP requests.
@@ -25,6 +19,15 @@ The system MUST validate required environment settings before it binds an HTTP p
 - **WHEN** `DATABASE_URL` is missing or is an empty string
 - **THEN** the process MUST exit without serving HTTP
 
+### Requirement: Expected environment variables are documented
+The project MUST include an example environment file that lists `PORT`, `NODE_ENV`, `DATABASE_URL`, and `JWT_SECRET`. The example MUST provide a non-empty `DATABASE_URL` that matches the Compose PostgreSQL service (host, port, user, password, database). The example MUST list `JWT_SECRET` as a placeholder for a later auth stage, not as a secret consumed by this stage.
+
+#### Scenario: Example env lists current and future keys
+- **WHEN** a developer inspects the example environment file
+- **THEN** it includes `PORT`, `NODE_ENV`, a non-empty `DATABASE_URL`, and `JWT_SECRET`
+
+## ADDED Requirements
+
 ### Requirement: JWT secret remains optional and unused
 The system MUST start when `JWT_SECRET` is absent. An empty string for `JWT_SECRET` MUST be treated as absent. Absence MUST NOT be a startup error at this stage. A non-empty value, if provided, MUST be accepted as a string on the validated configuration object and MUST NOT be used to sign or verify tokens at this stage.
 
@@ -32,16 +35,8 @@ The system MUST start when `JWT_SECRET` is absent. An empty string for `JWT_SECR
 - **WHEN** `JWT_SECRET` is unset or empty and required settings including `DATABASE_URL` are valid
 - **THEN** configuration loads successfully with respect to `JWT_SECRET`
 
-### Requirement: Request handling and business logic use validated config only
-HTTP request handling and business-logic layers MUST use the validated configuration object for runtime settings. Those layers MUST NOT read unvalidated environment variables.
+## REMOVED Requirements
 
-#### Scenario: Config is the source of PORT
-- **WHEN** the HTTP server binds a listen port
-- **THEN** the port MUST come from validated configuration, not from ad-hoc environment reads in HTTP or service code
-
-### Requirement: Expected environment variables are documented
-The project MUST include an example environment file that lists `PORT`, `NODE_ENV`, `DATABASE_URL`, and `JWT_SECRET`. The example MUST provide a non-empty `DATABASE_URL` that matches the Compose PostgreSQL service (host, port, user, password, database). The example MUST list `JWT_SECRET` as a placeholder for a later auth stage, not as a secret consumed by this stage.
-
-#### Scenario: Example env lists current and future keys
-- **WHEN** a developer inspects the example environment file
-- **THEN** it includes `PORT`, `NODE_ENV`, a non-empty `DATABASE_URL`, and `JWT_SECRET`
+### Requirement: Database URL and JWT secret are optional until later stages
+**Reason**: This stage connects to PostgreSQL, so `DATABASE_URL` is required. `JWT_SECRET` stays optional under a dedicated requirement until auth.
+**Migration**: Put a non-empty `DATABASE_URL` in `.env` matching Compose. Do not rely on an empty `DATABASE_URL` placeholder.
