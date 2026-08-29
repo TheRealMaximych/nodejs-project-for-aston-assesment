@@ -29,7 +29,7 @@ The system MUST apply database schema changes only through versioned migrations.
 - **THEN** the database MUST NOT contain tables for User, BankAccount, or Transaction domain entities
 
 ### Requirement: Migration commands are documented as npm scripts
-The project MUST provide npm scripts to generate a migration, run pending migrations, and revert the last migration. Running the apply script MUST make pending migrations take effect on the configured database.
+The project MUST provide npm scripts to generate a migration, run pending migrations, and revert the last migration. The project MUST also provide an npm script named `migrate` that applies pending migrations on the database configured by the validated `DATABASE_URL`. Running `migrate` MUST have the same effect as the existing migration-run script. Running the apply script MUST make pending migrations take effect on the configured database.
 
 #### Scenario: Pending migrations apply
 - **WHEN** a developer runs the documented migration run script against a running PostgreSQL with a valid `DATABASE_URL`
@@ -38,6 +38,10 @@ The project MUST provide npm scripts to generate a migration, run pending migrat
 #### Scenario: Last migration can be reverted
 - **WHEN** a developer runs the documented migration revert script after at least one migration has been applied
 - **THEN** the last applied migration is reverted
+
+#### Scenario: migrate script applies pending migrations
+- **WHEN** a developer runs `npm run migrate` against a running PostgreSQL with a valid `DATABASE_URL`
+- **THEN** pending migrations are applied and the command exits successfully
 
 ### Requirement: Seed command is an npm script
 The project MUST provide an npm script named `seed` that runs the demo seed against the database configured by the validated `DATABASE_URL`. Running that script MUST persist or upsert the demo users and funded accounts required to exercise a foreign `POST /transactions`. This change MUST NOT add a new TypeORM migration; schema auto-synchronization MUST remain disabled.
