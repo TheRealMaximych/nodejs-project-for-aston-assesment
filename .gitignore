@@ -19,7 +19,6 @@ pnpm-debug.log*
 .vscode/
 .idea/
 .cursor/
-openspec/
 
 # OS
 .DS_Store
