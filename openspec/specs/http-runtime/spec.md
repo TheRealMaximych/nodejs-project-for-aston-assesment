@@ -17,8 +17,8 @@ The system MUST listen for HTTP requests using the validated `PORT` only after a
 - **WHEN** PostgreSQL is not reachable and the process attempts to start with valid required config including `DATABASE_URL`
 - **THEN** the process MUST exit without serving HTTP
 
-### Requirement: Health, registration, and login are unauthenticated public routes
-The system MUST expose `GET /health` without authentication. The health response status MUST be 200 and the JSON body MUST be `{ "status": "ok" }`. The system MUST expose `POST /auth/register` without authentication as a domain success route when the body is valid and the email is free. The system MUST expose `POST /auth/login` without authentication as a domain success route when the email and password match a persisted User. The system MUST expose `POST /auth/logout` as an authenticated domain route (not an unknown path). The system MUST expose `POST /accounts` and `GET /accounts/:id/balance` as authenticated domain routes (not unknown paths). The system MUST expose `POST /transactions` as an authenticated domain route (not an unknown path). `GET /transactions/:accountId` MUST NOT succeed as a history domain payload at this stage.
+### Requirement: Health, registration, and login stay unauthenticated public routes
+The system MUST expose `GET /health` without authentication. The health response status MUST be 200 and the JSON body MUST be `{ "status": "ok" }`. The system MUST expose `POST /auth/register` without authentication as a domain success route when the body is valid and the email is free. The system MUST expose `POST /auth/login` without authentication as a domain success route when the email and password match a persisted User. The system MUST expose `POST /auth/logout` as an authenticated domain route (not an unknown path). The system MUST expose `POST /accounts` and `GET /accounts/:id/balance` as authenticated domain routes (not unknown paths). The system MUST expose `POST /transactions` and `GET /transactions/:accountId` as authenticated domain routes (not unknown paths).
 
 #### Scenario: Unauthenticated health check
 - **WHEN** a client sends `GET /health` with no credentials
@@ -48,12 +48,12 @@ The system MUST expose `GET /health` without authentication. The health response
 - **WHEN** a client sends `POST /transactions` with no `Authorization` header
 - **THEN** the response is HTTP 401 with `{ "error": string, "statusCode": 401 }`, not the unknown-path 404 error body
 
-#### Scenario: Account and transfer routes are not available
-- **WHEN** a client sends `GET /transactions/:accountId`
-- **THEN** the response is the uniform error JSON (not a domain success history payload)
+#### Scenario: History without Bearer is not treated as unknown
+- **WHEN** a client sends `GET /transactions/:accountId` with no `Authorization` header
+- **THEN** the response is HTTP 401 with `{ "error": string, "statusCode": 401 }`, not the unknown-path 404 error body
 
-### Requirement: Logout, account, and transfer create routes are protected assignment routes at this stage
-`POST /auth/logout`, `POST /accounts`, `GET /accounts/:id/balance`, and `POST /transactions` MUST run authentication before their handlers. Transfer history (`GET /transactions/:accountId`) MUST still be absent as a domain success route. Authentication MUST NOT be required for `GET /health`, `POST /auth/register`, or `POST /auth/login`.
+### Requirement: Logout, account, transfer, and history routes are protected assignment routes at this stage
+`POST /auth/logout`, `POST /accounts`, `GET /accounts/:id/balance`, `POST /transactions`, and `GET /transactions/:accountId` MUST run authentication before their handlers. Authentication MUST NOT be required for `GET /health`, `POST /auth/register`, or `POST /auth/login`.
 
 #### Scenario: Protected logout is not 404 when authenticated
 - **WHEN** a client sends `POST /auth/logout` with a valid current access token
@@ -69,6 +69,10 @@ The system MUST expose `GET /health` without authentication. The health response
 
 #### Scenario: Protected transfer create is not 404 when authenticated
 - **WHEN** a client sends `POST /transactions` with a valid current access token
+- **THEN** the response is not the unknown-path 404 error body
+
+#### Scenario: Protected history is not 404 when authenticated
+- **WHEN** a client sends `GET /transactions/:accountId` with a valid current access token for an account they own
 - **THEN** the response is not the unknown-path 404 error body
 
 #### Scenario: Public auth routes stay unauthenticated
