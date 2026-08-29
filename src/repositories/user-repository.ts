@@ -14,6 +14,11 @@ export type AuthUser = {
   tokenVersion: number;
 };
 
+export type AuthIdentity = {
+  id: string;
+  tokenVersion: number;
+};
+
 export type NewUser = {
   email: string;
   passwordHash: string;
@@ -22,6 +27,8 @@ export type NewUser = {
 export type UserRepository = {
   findByEmail(email: string): Promise<PublicUser | null>;
   findAuthByEmail(email: string): Promise<AuthUser | null>;
+  findAuthById(id: string): Promise<AuthIdentity | null>;
+  incrementTokenVersion(id: string): Promise<boolean>;
   insert(user: NewUser): Promise<PublicUser>;
 };
 
@@ -66,6 +73,26 @@ async function findAuthByEmail(email: string): Promise<AuthUser | null> {
   };
 }
 
+async function findAuthById(id: string): Promise<AuthIdentity | null> {
+  const repo = AppDataSource.getRepository(User);
+  const user = await repo.findOne({
+    where: { id },
+    select: { id: true, tokenVersion: true },
+  });
+
+  if (!user) {
+    return null;
+  }
+
+  return { id: user.id, tokenVersion: user.tokenVersion };
+}
+
+async function incrementTokenVersion(id: string): Promise<boolean> {
+  const repo = AppDataSource.getRepository(User);
+  const result = await repo.increment({ id }, "tokenVersion", 1);
+  return (result.affected ?? 0) > 0;
+}
+
 async function insert(user: NewUser): Promise<PublicUser> {
   const repo = AppDataSource.getRepository(User);
 
@@ -89,5 +116,7 @@ async function insert(user: NewUser): Promise<PublicUser> {
 export const userRepository: UserRepository = {
   findByEmail,
   findAuthByEmail,
+  findAuthById,
+  incrementTokenVersion,
   insert,
 };

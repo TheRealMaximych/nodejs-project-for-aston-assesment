@@ -39,13 +39,13 @@ describe("notFound", () => {
     }
   });
 
-  test("POST /auth/logout returns 404 { error, statusCode }", async () => {
+  test("POST /accounts returns 404 { error, statusCode }", async () => {
     const server = app.listen(0);
     await once(server, "listening");
 
     try {
       const { port } = server.address() as AddressInfo;
-      const response = await fetch(`http://127.0.0.1:${port}/auth/logout`, {
+      const response = await fetch(`http://127.0.0.1:${port}/accounts`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: "{}",
@@ -55,6 +55,28 @@ describe("notFound", () => {
       assert.equal(response.status, 404);
       assert.ok(body !== null && typeof body === "object");
       assert.equal((body as { statusCode: unknown }).statusCode, 404);
+      assert.equal(typeof (body as { error: unknown }).error, "string");
+      assert.ok(((body as { error: string }).error as string).length > 0);
+    } finally {
+      server.close();
+      await once(server, "close");
+    }
+  });
+
+  test("POST /auth/logout without Authorization returns 401 { error, statusCode }", async () => {
+    const server = app.listen(0);
+    await once(server, "listening");
+
+    try {
+      const { port } = server.address() as AddressInfo;
+      const response = await fetch(`http://127.0.0.1:${port}/auth/logout`, {
+        method: "POST",
+      });
+      const body: unknown = await response.json();
+
+      assert.equal(response.status, 401);
+      assert.ok(body !== null && typeof body === "object");
+      assert.equal((body as { statusCode: unknown }).statusCode, 401);
       assert.equal(typeof (body as { error: unknown }).error, "string");
       assert.ok(((body as { error: string }).error as string).length > 0);
     } finally {
