@@ -14,6 +14,7 @@
     "migration:generate": "npm run typeorm -- migration:generate",
     "migration:run": "npm run typeorm -- migration:run",
     "migration:revert": "npm run typeorm -- migration:revert",
+    "seed": "tsx seeds/demo.ts",
     "test": "tsx --test \"src/**/*.test.ts\""
   },
   "dependencies": {
