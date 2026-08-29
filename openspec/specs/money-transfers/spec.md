@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Lets an authenticated client move decimal funds from a BankAccount they own to any other BankAccount of the same currency, persisting an atomic Transaction without a deposit API or a history endpoint.
+Lets an authenticated client move decimal funds from a BankAccount they own to any other BankAccount of the same currency, persisting an atomic Transaction without a deposit API.
 
 ## Requirements
 
@@ -111,13 +111,9 @@ On a successful transfer the system MUST write a log line whose message is `Tran
 - **WHEN** a transfer is rejected because of insufficient funds
 - **THEN** the application log contains `Transfer failed: from=` followed by the source id and `reason=insufficient funds` and does not contain a password, hash, JWT, or `accessToken`
 
-### Requirement: There is no deposit API and no transfer history in this capability
-The system MUST NOT expose an HTTP endpoint that credits an existing BankAccount except as the destination of this transfer. The system MUST NOT expose `GET /transactions/:accountId` as a history success route in this capability.
+### Requirement: There is no deposit API in this capability
+The system MUST NOT expose an HTTP endpoint that credits an existing BankAccount except as the destination of this transfer.
 
 #### Scenario: No deposit route
 - **WHEN** a client attempts to credit an account without a matching `POST /transactions` debit from another account
 - **THEN** no dedicated deposit route exists that increases that account's balance
-
-#### Scenario: History remains unavailable
-- **WHEN** a client sends `GET /transactions/:accountId`
-- **THEN** the response is not a domain success history payload
