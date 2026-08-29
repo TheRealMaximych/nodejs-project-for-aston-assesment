@@ -8,6 +8,12 @@ export type PublicUser = {
   email: string;
 };
 
+export type AuthUser = {
+  id: string;
+  passwordHash: string;
+  tokenVersion: number;
+};
+
 export type NewUser = {
   email: string;
   passwordHash: string;
@@ -15,6 +21,7 @@ export type NewUser = {
 
 export type UserRepository = {
   findByEmail(email: string): Promise<PublicUser | null>;
+  findAuthByEmail(email: string): Promise<AuthUser | null>;
   insert(user: NewUser): Promise<PublicUser>;
 };
 
@@ -41,6 +48,24 @@ async function findByEmail(email: string): Promise<PublicUser | null> {
   return { id: user.id, email: user.email };
 }
 
+async function findAuthByEmail(email: string): Promise<AuthUser | null> {
+  const repo = AppDataSource.getRepository(User);
+  const user = await repo.findOne({
+    where: { email },
+    select: { id: true, passwordHash: true, tokenVersion: true },
+  });
+
+  if (!user) {
+    return null;
+  }
+
+  return {
+    id: user.id,
+    passwordHash: user.passwordHash,
+    tokenVersion: user.tokenVersion,
+  };
+}
+
 async function insert(user: NewUser): Promise<PublicUser> {
   const repo = AppDataSource.getRepository(User);
 
@@ -63,5 +88,6 @@ async function insert(user: NewUser): Promise<PublicUser> {
 
 export const userRepository: UserRepository = {
   findByEmail,
+  findAuthByEmail,
   insert,
 };
