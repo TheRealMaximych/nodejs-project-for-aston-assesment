@@ -50,6 +50,7 @@ npm run dev
 ```
 
 Проверка: `GET http://localhost:3000/health` → `{ "status": "ok" }` (если `PORT=3000`).
+Проверка API в браузере: [http://localhost:3000/](http://localhost:3000/) (если `PORT=3000`).
 
 ## npm-скрипты
 
