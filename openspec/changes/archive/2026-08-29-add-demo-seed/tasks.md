@@ -1,0 +1,10 @@
+## 1. Seed CLI
+
+- [x] 1.1 Add `seeds/demo.ts` that initializes `AppDataSource`, upserts Alice and Bob in one query-runner transaction using the fixed UUIDs/emails/currency/balances from `design.md` (`USD`, `"1000.00"` / `"500.00"`), hashes demo passwords with `await hashPassword` (no `hashSync`), leaves `tokenVersion` unchanged on update, restores canonical balances on re-run, aborts if a demo email exists under a different user id, logs `Seeded user: userId=... email=...` and `Seeded account: accountId=..., userId=...` without password/hash/JWT, destroys the DataSource in `finally`, and does not import HTTP `app`/`listen`; verify the file exists under `seeds/`, balances are string literals, and logger calls do not interpolate the demo password or hash
+- [x] 1.2 Add `"seed": "tsx seeds/demo.ts"` to `package.json` and do not add a new TypeORM migration, deposit route, Swagger, or README edit; verify `package.json` contains the `seed` script, `migrations/` has no new file from this change, and `src/http` has no deposit path
+
+## 2. Layering, existing tests, and manual acceptance
+
+- [x] 2.1 Grep `src/http` and `src/services` for TypeORM `DataSource` / `Repository` / QueryBuilder imports (must stay empty aside from existing password-hasher usage of bcrypt) and grep `seeds/demo.ts` logger messages for password/hash/token fields; verify those greps match the specs (TypeORM allowed only in `seeds/` plus config/repositories)
+- [x] 2.2 Run `npm test` and `npm run build` and verify both exit 0 with `strict` compilation (no new service tests required; seed is CLI-only)
+- [x] 2.3 With PostgreSQL up and `.env` valid, run `npm run migration:run` then `npm run seed` twice, then `POST /auth/login` for both demo emails and `POST /transactions` from Alice's account to Bob's account with a positive decimal amount below Alice's balance; verify the second seed does not duplicate rows, Alice/Bob logins return `{ accessToken }`, and the transfer returns 201 `{ transactionId, status: "Completed" }`

@@ -39,6 +39,17 @@ The project MUST provide npm scripts to generate a migration, run pending migrat
 - **WHEN** a developer runs the documented migration revert script after at least one migration has been applied
 - **THEN** the last applied migration is reverted
 
+### Requirement: Seed command is an npm script
+The project MUST provide an npm script named `seed` that runs the demo seed against the database configured by the validated `DATABASE_URL`. Running that script MUST persist or upsert the demo users and funded accounts required to exercise a foreign `POST /transactions`. This change MUST NOT add a new TypeORM migration; schema auto-synchronization MUST remain disabled.
+
+#### Scenario: Seed script upserts demo data
+- **WHEN** a developer runs the documented `seed` npm script against a running PostgreSQL that already has pending migrations applied and a valid `DATABASE_URL`
+- **THEN** the command exits successfully and the database contains the demo users and funded same-currency accounts from the demo-seed capability
+
+#### Scenario: Seed does not require a new migration
+- **WHEN** a reviewer inspects migrations added in this change
+- **THEN** no new migration file is required for seed rows, and schema auto-synchronization remains off
+
 ### Requirement: Process connects before serving HTTP
 The system MUST initialize a database connection with the validated `DATABASE_URL` before it binds the HTTP port. HTTP handlers and business-logic layers MUST NOT open that connection themselves or read unvalidated environment variables for it.
 
@@ -54,11 +65,26 @@ If database initialization fails, the system MUST log the failure and MUST NOT w
 - **THEN** the application log records a connection failure and MUST NOT contain the password, `JWT_SECRET`, or `DATABASE_URL`
 
 ### Requirement: Persistence APIs stay out of HTTP
-Database DataSource, repository, and query-builder APIs MUST be used only from the configuration and repository layers. HTTP handlers MUST NOT import or call those APIs.
+Database DataSource, repository, and query-builder APIs MUST be used only from the configuration layer, the repository layer, and the demo seed CLI under `seeds/`. HTTP handlers MUST NOT import or call those APIs.
 
 #### Scenario: HTTP layer has no DataSource usage
 - **WHEN** a reviewer inspects HTTP request-handling modules
 - **THEN** those modules do not import or invoke DataSource, repository, or query-builder APIs
+
+### Requirement: Seed CLI may use TypeORM
+The demo seed CLI MUST be allowed to use TypeORM `DataSource`, `Repository`, and query-builder APIs from the `seeds/` directory in order to insert or upsert User and BankAccount rows. HTTP handlers and business-logic services MUST still NOT import or call those APIs. Seed writes MUST use the same application DataSource mapping as runtime (User and BankAccount registered, `synchronize` off). Values written for `balance` MUST be decimal strings (or a decimal type), not IEEE `number`.
+
+#### Scenario: Seeds directory may call TypeORM
+- **WHEN** a reviewer inspects modules under `seeds/`
+- **THEN** those modules MAY import and invoke TypeORM `DataSource`, `Repository`, or query-builder APIs
+
+#### Scenario: HTTP and services still have no TypeORM
+- **WHEN** a reviewer inspects HTTP request-handling modules and service modules after the seed CLI is added
+- **THEN** those modules do not import or invoke TypeORM `DataSource`, TypeORM `Repository`, or query-builder APIs
+
+#### Scenario: Seeded balance is not an IEEE number
+- **WHEN** the seed CLI persists a demo account balance
+- **THEN** that balance is a string or decimal type and MUST NOT be a JavaScript `number`
 
 ### Requirement: Users table comes from a TypeORM migration
 The system MUST create the `users` table only through a versioned TypeORM migration after the initial schema migration. Schema auto-synchronization MUST remain disabled. The `users` table MUST store UUID primary key `id`, unique `email`, password hash, `createdAt`, and `tokenVersion`. The initial (first) committed migration MUST still not create User, BankAccount, or Transaction tables.
@@ -72,7 +98,7 @@ The system MUST create the `users` table only through a versioned TypeORM migrat
 - **THEN** schema auto-synchronization is off
 
 ### Requirement: User persistence stays in the repository layer
-Creating and looking up users MUST go through the application repository layer. HTTP handlers and business-logic services MUST NOT import or call TypeORM `DataSource`, TypeORM `Repository`, or query-builder APIs. The application DataSource MUST register the User mapping so migrations and runtime share one schema definition.
+Creating and looking up users for HTTP request handling MUST go through the application repository layer. The demo seed CLI MAY insert or upsert User rows using TypeORM `DataSource` or `Repository` APIs from `seeds/`. HTTP handlers and business-logic services MUST NOT import or call TypeORM `DataSource`, TypeORM `Repository`, or query-builder APIs. The application DataSource MUST register the User mapping so migrations, seed, and runtime share one schema definition.
 
 #### Scenario: HTTP and services have no TypeORM usage
 - **WHEN** a reviewer inspects HTTP request-handling modules and service modules
@@ -98,7 +124,7 @@ The system MUST create the bank accounts table only through a versioned TypeORM 
 - **THEN** the balance column type is `numeric` (or `decimal`) and MUST NOT be `float`, `double precision`, `real`, or an integer type used as money
 
 ### Requirement: BankAccount persistence stays in the repository layer
-Creating and looking up bank accounts MUST go through the application repository layer. HTTP handlers and business-logic services MUST NOT import or call TypeORM `DataSource`, TypeORM `Repository`, or query-builder APIs. The application DataSource MUST register the BankAccount mapping so migrations and runtime share one schema definition. Values loaded for `balance` MUST be application strings (or a decimal type), not IEEE `number`.
+Creating and looking up bank accounts for HTTP request handling MUST go through the application repository layer. The demo seed CLI MAY insert or upsert BankAccount rows using TypeORM `DataSource` or `Repository` APIs from `seeds/`, including non-zero balances. HTTP handlers and business-logic services MUST NOT import or call TypeORM `DataSource`, TypeORM `Repository`, or query-builder APIs. The application DataSource MUST register the BankAccount mapping so migrations, seed, and runtime share one schema definition. Values loaded for `balance` MUST be application strings (or a decimal type), not IEEE `number`.
 
 #### Scenario: HTTP and services have no TypeORM usage
 - **WHEN** a reviewer inspects HTTP request-handling modules and service modules
