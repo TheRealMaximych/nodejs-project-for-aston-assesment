@@ -7,7 +7,7 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive(),
   NODE_ENV: z.enum(["development", "test", "production"]),
   DATABASE_URL: z.string().trim().min(1),
-  JWT_SECRET: z.string().trim().min(1),
+  JWT_SECRET: z.string().trim().min(32),
 });
 
 function loadConfig() {

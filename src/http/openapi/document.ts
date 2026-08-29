@@ -309,8 +309,9 @@ export const openApiDocument: OpenAPIV3.Document = {
           toAccount: { type: "string", format: "uuid" },
           amount: {
             type: "string",
-            pattern: "^(?:0|[1-9]\\d*)(?:\\.\\d{1,2})?$",
-            description: "Positive decimal amount as a string",
+            pattern: "^(?:0|[1-9]\\d{0,17})(?:\\.\\d{1,2})?$",
+            description:
+              "Positive decimal amount as a string; at most 18 integer digits to fit numeric(20,2)",
           },
         },
       },

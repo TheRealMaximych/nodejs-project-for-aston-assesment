@@ -92,4 +92,36 @@ describe("errorHandler", () => {
 
     assert.equal(spy.mock.callCount(), 1);
   });
+
+  test("malformed JSON body is 400 Invalid JSON without an unhandled log", () => {
+    const spy = mock.method(logger, "error", () => undefined);
+    const err = Object.assign(new SyntaxError("Unexpected token"), {
+      status: 400,
+      type: "entity.parse.failed",
+      body: "{not-json",
+    });
+    const res = createRes();
+
+    invoke(err, res);
+
+    assert.equal(res.statusCode, 400);
+    assert.deepEqual(res.body, { error: "Invalid JSON", statusCode: 400 });
+    assert.equal(JSON.stringify(res.body).includes("{not-json"), false);
+    assert.equal(spy.mock.callCount(), 0);
+  });
+
+  test("oversized JSON body is 413 without an unhandled log", () => {
+    const spy = mock.method(logger, "error", () => undefined);
+    const err = Object.assign(new Error("request entity too large"), {
+      status: 413,
+      type: "entity.too.large",
+    });
+    const res = createRes();
+
+    invoke(err, res);
+
+    assert.equal(res.statusCode, 413);
+    assert.deepEqual(res.body, { error: "Request body too large", statusCode: 413 });
+    assert.equal(spy.mock.callCount(), 0);
+  });
 });

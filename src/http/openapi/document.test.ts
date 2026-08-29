@@ -81,6 +81,10 @@ describe("openApiDocument", () => {
     assert.equal(propertyType(schemaObject("BalanceResponse"), "balance"), "string");
     assert.equal(propertyType(schemaObject("TransferRequest"), "amount"), "string");
     assert.equal(propertyType(schemaObject("HistoryItem"), "amount"), "string");
+
+    const amount = schemaObject("TransferRequest").properties?.amount;
+    assert.ok(amount && !("$ref" in amount));
+    assert.equal(amount.pattern, "^(?:0|[1-9]\\d{0,17})(?:\\.\\d{1,2})?$");
   });
 
   test("transfer 400 example is insufficient funds", () => {

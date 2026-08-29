@@ -37,7 +37,7 @@ export type TransferMoneyDeps = {
   logger: { info: (message: string) => void };
 };
 
-const DECIMAL_AMOUNT = /^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/;
+const DECIMAL_AMOUNT = /^(?:0|[1-9]\d{0,17})(?:\.\d{1,2})?$/;
 
 const transferMoneySchema = z.object({
   fromAccount: z.uuid(),

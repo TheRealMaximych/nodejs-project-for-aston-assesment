@@ -236,6 +236,15 @@ describe("transferMoney", () => {
       () => transferMoney(USER_ID, secretBody({ amount: "-1.00" }), deps),
       ValidationError,
     );
+    await assert.rejects(
+      () =>
+        transferMoney(
+          USER_ID,
+          secretBody({ amount: "1000000000000000000.00" }),
+          deps,
+        ),
+      ValidationError,
+    );
     assert.equal(sessionCalls.count, 0);
     assert.deepEqual(completeCalls, []);
   });
