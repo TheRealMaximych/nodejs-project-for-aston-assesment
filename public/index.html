@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Проверка API</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f1ea;
+        --ink: #1c1917;
+        --muted: #57534e;
+        --card: #fffcf7;
+        --line: #d6d3d1;
+        --accent: #1d4ed8;
+        --ok: #166534;
+        --bad: #9f1239;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        line-height: 1.45;
+      }
+      header,
+      main {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 1.25rem 1rem;
+      }
+      h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.5rem;
+      }
+      .meta {
+        color: var(--muted);
+        margin: 0.25rem 0;
+      }
+      a {
+        color: var(--accent);
+      }
+      section {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 0.85rem 0;
+      }
+      h2 {
+        margin: 0 0 0.75rem;
+        font-size: 1.05rem;
+      }
+      label {
+        display: block;
+        font-size: 0.85rem;
+        margin: 0.45rem 0 0.2rem;
+      }
+      input {
+        width: 100%;
+        padding: 0.45rem 0.55rem;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        font: inherit;
+      }
+      button {
+        margin-top: 0.75rem;
+        padding: 0.45rem 0.9rem;
+        border: 0;
+        border-radius: 6px;
+        background: var(--accent);
+        color: #fff;
+        font: inherit;
+        cursor: pointer;
+      }
+      pre {
+        margin: 0.75rem 0 0;
+        padding: 0.7rem;
+        background: #1c1917;
+        color: #fafaf9;
+        border-radius: 8px;
+        overflow: auto;
+        min-height: 2.5rem;
+        white-space: pre-wrap;
+      }
+      .token-yes {
+        color: var(--ok);
+        font-weight: 600;
+      }
+      .token-no {
+        color: var(--bad);
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Проверка API</h1>
+      <p class="meta">
+        Токен в памяти:
+        <span id="token-status" class="token-no">нет</span>
+      </p>
+      <p class="meta">
+        <a href="/api-docs">OpenAPI / Swagger</a>
+      </p>
+    </header>
+    <main>
+      <section>
+        <h2>GET /health</h2>
+        <form id="form-health">
+          <button type="submit">Send</button>
+        </form>
+        <pre id="out-health"></pre>
+      </section>
+
+      <section>
+        <h2>POST /auth/register</h2>
+        <form id="form-register">
+          <label for="register-email">email</label>
+          <input
+            id="register-email"
+            name="email"
+            type="email"
+            placeholder="alice.demo@example.com"
+            autocomplete="username"
+          />
+          <label for="register-password">password</label>
+          <input
+            id="register-password"
+            name="password"
+            type="password"
+            placeholder="DemoPass12"
+            autocomplete="new-password"
+          />
+          <button type="submit">Send</button>
+        </form>
+        <pre id="out-register"></pre>
+      </section>
+
+      <section>
+        <h2>POST /auth/login</h2>
+        <form id="form-login">
+          <label for="login-email">email</label>
+          <input
+            id="login-email"
+            name="email"
+            type="email"
+            placeholder="alice.demo@example.com"
+            value="alice.demo@example.com"
+            autocomplete="username"
+          />
+          <label for="login-password">password</label>
+          <input
+            id="login-password"
+            name="password"
+            type="password"
+            placeholder="DemoPass12"
+            value="DemoPass12"
+            autocomplete="current-password"
+          />
+          <button type="submit">Send</button>
+        </form>
+        <pre id="out-login"></pre>
+      </section>
+
+      <section>
+        <h2>POST /auth/logout</h2>
+        <form id="form-logout">
+          <button type="submit">Send</button>
+        </form>
+        <pre id="out-logout"></pre>
+      </section>
+
+      <section>
+        <h2>POST /accounts</h2>
+        <form id="form-accounts">
+          <label for="account-holder">accountHolder</label>
+          <input
+            id="account-holder"
+            name="accountHolder"
+            type="text"
+            placeholder="Alice"
+            value="Alice"
+          />
+          <label for="account-currency">currency</label>
+          <input
+            id="account-currency"
+            name="currency"
+            type="text"
+            placeholder="USD"
+            value="USD"
+          />
+          <button type="submit">Send</button>
+        </form>
+        <pre id="out-accounts"></pre>
+      </section>
+
+      <section>
+        <h2>GET /accounts/:id/balance</h2>
+        <form id="form-balance">
+          <label for="balance-id">id (UUID)</label>
+          <input
+            id="balance-id"
+            name="id"
+            type="text"
+            placeholder="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+            value="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+          />
+          <button type="submit">Send</button>
+        </form>
+        <pre id="out-balance"></pre>
+      </section>
+
+      <section>
+        <h2>POST /transactions</h2>
+        <form id="form-transfer">
+          <label for="from-account">fromAccount (UUID)</label>
+          <input
+            id="from-account"
+            name="fromAccount"
+            type="text"
+            placeholder="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+            value="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+          />
+          <label for="to-account">toAccount (UUID)</label>
+          <input
+            id="to-account"
+            name="toAccount"
+            type="text"
+            placeholder="bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
+            value="bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
+          />
+          <label for="amount">amount</label>
+          <input
+            id="amount"
+            name="amount"
+            type="text"
+            inputmode="decimal"
+            placeholder="10.50"
+            value="10.50"
+          />
+          <button type="submit">Send</button>
+        </form>
+        <pre id="out-transfer"></pre>
+      </section>
+
+      <section>
+        <h2>GET /transactions/:accountId</h2>
+        <form id="form-history">
+          <label for="history-account-id">accountId (UUID)</label>
+          <input
+            id="history-account-id"
+            name="accountId"
+            type="text"
+            placeholder="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+            value="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+          />
+          <button type="submit">Send</button>
+        </form>
+        <pre id="out-history"></pre>
+      </section>
+    </main>
+    <script>
+      let accessToken = null;
+
+      function updateTokenStatus() {
+        const el = document.getElementById("token-status");
+        const hasToken = Boolean(accessToken);
+        el.textContent = hasToken ? "да" : "нет";
+        el.className = hasToken ? "token-yes" : "token-no";
+      }
+
+      function showResult(outputEl, statusLine, bodyText) {
+        outputEl.textContent = statusLine + "\n" + bodyText;
+      }
+
+      async function sendApi(outputEl, options) {
+        try {
+          const headers = {};
+          if (options.body !== undefined) {
+            headers["Content-Type"] = "application/json";
+          }
+          if (options.auth && accessToken) {
+            headers["Authorization"] = "Bearer " + accessToken;
+          }
+
+          const response = await fetch(options.url, {
+            method: options.method,
+            headers: headers,
+            body:
+              options.body !== undefined
+                ? JSON.stringify(options.body)
+                : undefined,
+          });
+          const text = await response.text();
+          let parsed;
+          let parsedOk = false;
+          if (text) {
+            try {
+              parsed = JSON.parse(text);
+              parsedOk = true;
+            } catch {
+              parsedOk = false;
+            }
+          }
+
+          if (
+            options.url === "/auth/login" &&
+            response.status === 200 &&
+            parsedOk &&
+            parsed &&
+            typeof parsed.accessToken === "string" &&
+            parsed.accessToken.length > 0
+          ) {
+            accessToken = parsed.accessToken;
+            updateTokenStatus();
+          }
+          if (options.url === "/auth/logout" && response.status === 204) {
+            accessToken = null;
+            updateTokenStatus();
+          }
+
+          const bodyDisplay =
+            text === ""
+              ? "(empty body)"
+              : parsedOk
+                ? JSON.stringify(parsed, null, 2)
+                : text;
+          showResult(outputEl, "HTTP " + response.status, bodyDisplay);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          showResult(outputEl, "Fetch failed", message);
+        }
+      }
+
+      function bindForm(formId, outputId, buildOptions) {
+        document.getElementById(formId).addEventListener("submit", function (event) {
+          event.preventDefault();
+          const outputEl = document.getElementById(outputId);
+          sendApi(outputEl, buildOptions());
+        });
+      }
+
+      bindForm("form-health", "out-health", function () {
+        return { method: "GET", url: "/health", auth: false };
+      });
+
+      bindForm("form-register", "out-register", function () {
+        return {
+          method: "POST",
+          url: "/auth/register",
+          auth: false,
+          body: {
+            email: document.getElementById("register-email").value,
+            password: document.getElementById("register-password").value,
+          },
+        };
+      });
+
+      bindForm("form-login", "out-login", function () {
+        return {
+          method: "POST",
+          url: "/auth/login",
+          auth: false,
+          body: {
+            email: document.getElementById("login-email").value,
+            password: document.getElementById("login-password").value,
+          },
+        };
+      });
+
+      bindForm("form-logout", "out-logout", function () {
+        return { method: "POST", url: "/auth/logout", auth: true };
+      });
+
+      bindForm("form-accounts", "out-accounts", function () {
+        return {
+          method: "POST",
+          url: "/accounts",
+          auth: true,
+          body: {
+            accountHolder: document.getElementById("account-holder").value,
+            currency: document.getElementById("account-currency").value,
+          },
+        };
+      });
+
+      bindForm("form-balance", "out-balance", function () {
+        const id = document.getElementById("balance-id").value;
+        return {
+          method: "GET",
+          url: "/accounts/" + encodeURIComponent(id) + "/balance",
+          auth: true,
+        };
+      });
+
+      bindForm("form-transfer", "out-transfer", function () {
+        return {
+          method: "POST",
+          url: "/transactions",
+          auth: true,
+          body: {
+            fromAccount: document.getElementById("from-account").value,
+            toAccount: document.getElementById("to-account").value,
+            amount: document.getElementById("amount").value,
+          },
+        };
+      });
+
+      bindForm("form-history", "out-history", function () {
+        const accountId = document.getElementById("history-account-id").value;
+        return {
+          method: "GET",
+          url: "/transactions/" + encodeURIComponent(accountId),
+          auth: true,
+        };
+      });
+
+      updateTokenStatus();
+    </script>
+  </body>
+</html>

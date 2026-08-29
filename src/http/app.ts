@@ -1,3 +1,4 @@
+import path from "node:path";
 import express from "express";
 import swaggerUi from "swagger-ui-express";
 import { errorHandler } from "./middleware/error-handler";
@@ -16,5 +17,6 @@ app.use("/auth", authRouter);
 app.use("/accounts", accountsRouter);
 app.use("/transactions", transactionsRouter);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
+app.use(express.static(path.join(__dirname, "..", "..", "public")));
 app.use(notFound);
 app.use(errorHandler);
