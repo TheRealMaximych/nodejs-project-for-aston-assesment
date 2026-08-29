@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
-import { AppError } from "../../domain/app-error";
+import { NotFoundError } from "../../domain/errors";
 
 export function notFound(_req: Request, _res: Response, next: NextFunction): void {
-  next(new AppError("Not Found", 404));
+  next(new NotFoundError());
 }

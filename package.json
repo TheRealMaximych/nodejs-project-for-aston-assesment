@@ -14,7 +14,7 @@
     "migration:generate": "npm run typeorm -- migration:generate",
     "migration:run": "npm run typeorm -- migration:run",
     "migration:revert": "npm run typeorm -- migration:revert",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tsx --test \"src/**/*.test.ts\""
   },
   "dependencies": {
     "dotenv": "^17.4.2",
